@@ -81,7 +81,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Yii\\Mutex\\Tests\\": "tests"
+            "Yii\\Mutex\\Tests\\": ["tests", "vendor/yiisoft/mutex/tests"]
         }
     },
     "extra": {
