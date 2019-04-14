@@ -14,3 +14,4 @@ This library provides a File mutex implementation for [yiisoft/mutex].
 [![Total Downloads](https://poser.pugx.org/yiisoft/mutex-file/downloads.png)](https://packagist.org/packages/yiisoft/mutex-file)
 [![Build Status](https://travis-ci.com/yiisoft/mutex-file.svg?branch=master)](https://travis-ci.com/yiisoft/mutex-file)
 
+
