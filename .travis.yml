@@ -24,5 +24,5 @@ install:
 
 script:
   - |
-    vendor/bin/phpcs --standard=PSR2 src tests &&
+    vendor/bin/phpcs --standard=PSR2 --exclude=PSR1.Files.SideEffects src tests &&
     vendor/bin/phpunit $PHPUNIT_FLAGS
