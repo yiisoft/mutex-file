@@ -56,7 +56,7 @@ class FileMutex extends Mutex
      */
     private $files = [];
 
-    public function __construct($mutexPath, $autoRelease = true)
+    public function __construct(string $mutexPath, bool $autoRelease = true)
     {
         parent::__construct($autoRelease);
 
@@ -70,7 +70,7 @@ class FileMutex extends Mutex
         }
     }
 
-    protected function createDirectoryRecursively($path, $mode)
+    protected function createDirectoryRecursively(string $path, int $mode)
     {
         $parentDir = dirname($path);
         // recurse if parent dir does not exist and we are not at the root of the file system.
@@ -111,7 +111,7 @@ class FileMutex extends Mutex
      *
      * @return bool acquiring result.
      */
-    protected function acquireLock($name, $timeout = 0)
+    protected function acquireLock(string $name, int $timeout = 0): bool
     {
         $filePath = $this->getLockFilePath($name);
 
@@ -164,7 +164,7 @@ class FileMutex extends Mutex
      *
      * @return bool release result.
      */
-    protected function releaseLock($name)
+    protected function releaseLock(string $name): bool
     {
         if (!isset($this->files[$name])) {
             return false;
@@ -196,7 +196,7 @@ class FileMutex extends Mutex
      *
      * @return string
      */
-    public function getLockFilePath($name)
+    public function getLockFilePath(string $name): string
     {
         return $this->mutexPath.DIRECTORY_SEPARATOR.md5($name).'.lock';
     }
