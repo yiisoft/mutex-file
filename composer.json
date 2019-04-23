@@ -62,6 +62,8 @@
         "wiki": "http://www.yiiframework.com/wiki/",
         "irc": "irc://irc.freenode.net/yii"
     },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "require": {
         "yiisoft/mutex": "^3.0@dev"
     },
