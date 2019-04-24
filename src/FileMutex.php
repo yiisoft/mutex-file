@@ -6,7 +6,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace Yii\Mutex;
+namespace Yiisoft\Mutex;
 
 /**
  * FileMutex implements mutex "lock" mechanism via local file system files.
