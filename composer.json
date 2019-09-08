@@ -21,21 +21,17 @@
         "yiisoft/mutex": "^3.0@dev"
     },
     "require-dev": {
-        "yiisoft/log": "^3.0@dev",
-        "yiisoft/di": "^3.0@dev",
-        "yiisoft/cache": "^3.0@dev",
-        "phpunit/phpunit": "^7.3",
-        "squizlabs/php_codesniffer": "^3.2",
-        "hiqdev/composer-config-plugin": "^1.0@dev"
+        "phpunit/phpunit": "^7.3"
     },
     "autoload": {
         "psr-4": {
-            "Yiisoft\\Mutex\\": "src"
+            "Yiisoft\\Mutex\\File\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Yiisoft\\Mutex\\Tests\\": ["tests", "vendor/yiisoft/mutex/tests"]
+            "Yiisoft\\Mutex\\Tests\\": ["vendor/yiisoft/mutex/tests"],
+            "Yiisoft\\Mutex\\File\\Tests\\": ["tests", "vendor/yiisoft/mutex/tests"]
         }
     },
     "extra": {

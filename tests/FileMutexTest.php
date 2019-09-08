@@ -1,14 +1,11 @@
 <?php
-namespace Yiisoft\Mutex\Tests;
+namespace Yiisoft\Mutex\File\Tests;
 
-use Yiisoft\Mutex\FileMutex;
+use PHPUnit\Framework\TestCase;
+use Yiisoft\Mutex\File\FileMutex;
+use Yiisoft\Mutex\Tests\MutexTestTrait;
 
-/**
- * Class FileMutexTest.
- *
- * @group mutex
- */
-class FileMutexTest extends \PHPUnit\Framework\TestCase
+final class FileMutexTest extends TestCase
 {
     use MutexTestTrait;
 
@@ -17,7 +14,7 @@ class FileMutexTest extends \PHPUnit\Framework\TestCase
      *
      * @return FileMutex
      */
-    protected function createMutex()
+    protected function createMutex(): FileMutex
     {
         return new FileMutex(sys_get_temp_dir());
     }
@@ -27,7 +24,7 @@ class FileMutexTest extends \PHPUnit\Framework\TestCase
      *
      * @param string $mutexName
      */
-    public function testDeleteLockFile($mutexName)
+    public function testDeleteLockFile($mutexName): void
     {
         $mutex = $this->createMutex();
 

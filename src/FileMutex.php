@@ -1,5 +1,8 @@
 <?php
-namespace Yiisoft\Mutex;
+namespace Yiisoft\Mutex\File;
+
+use Yiisoft\Mutex\Mutex;
+use Yiisoft\Mutex\RetryAcquireTrait;
 
 /**
  * FileMutex implements mutex "lock" mechanism via local file system files.
@@ -27,14 +30,14 @@ class FileMutex extends Mutex
      *          This value will be used by PHP chmod() function. No umask will be applied.
      *          If not set, the permission will be determined by the current environment.
      */
-    public $fileMode;
+    private $fileMode;
     /**
      * @var int the permission to be set for newly created directories.
      *          This value will be used by PHP chmod() function. No umask will be applied.
      *          Defaults to 0775, meaning the directory is read-writable by owner and group,
      *          but read-only for other users.
      */
-    public $dirMode = 0775;
+    private $dirMode = 0775;
     /**
      * @var bool whether file handling should assume a Windows file system.
      *           This value will determine how [[releaseLock()]] goes about deleting the lock file.
@@ -42,7 +45,7 @@ class FileMutex extends Mutex
      *
      * @since 2.0.16
      */
-    public $isWindows;
+    private $isWindows;
 
     /**
      * @var resource[] stores all opened lock files. Keys are lock names and values are file handles.
@@ -192,5 +195,20 @@ class FileMutex extends Mutex
     public function getLockFilePath(string $name): string
     {
         return $this->mutexPath.DIRECTORY_SEPARATOR.md5($name).'.lock';
+    }
+
+    public function setFileMode(int $fileMode): void
+    {
+        $this->fileMode = $fileMode;
+    }
+
+    public function setDirMode(int $dirMode): void
+    {
+        $this->dirMode = $dirMode;
+    }
+
+    public function setIsWindows(bool $isWindows): void
+    {
+        $this->isWindows = $isWindows;
     }
 }
