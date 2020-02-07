@@ -1,4 +1,5 @@
 <?php
+
 namespace Yiisoft\Mutex\File;
 
 use Yiisoft\Mutex\Mutex;
