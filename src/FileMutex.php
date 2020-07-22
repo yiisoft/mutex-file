@@ -82,7 +82,7 @@ class FileMutex extends Mutex
         } catch (\Exception $e) {
             if (!is_dir($path)) {// https://github.com/yiisoft/yii2/issues/9288
                 throw new \RuntimeException(
-                    "Failed to create directory \"$path\": ".$e->getMessage(),
+                    "Failed to create directory \"$path\": " . $e->getMessage(),
                     $e->getCode(),
                     $e
                 );
@@ -93,7 +93,7 @@ class FileMutex extends Mutex
             return chmod($path, $mode);
         } catch (\Exception $e) {
             throw new \RuntimeException(
-                "Failed to change permissions for directory \"$path\": ".$e->getMessage(),
+                "Failed to change permissions for directory \"$path\": " . $e->getMessage(),
                 $e->getCode(),
                 $e
             );
@@ -195,7 +195,7 @@ class FileMutex extends Mutex
      */
     public function getLockFilePath(string $name): string
     {
-        return $this->mutexPath.DIRECTORY_SEPARATOR.md5($name).'.lock';
+        return $this->mutexPath . DIRECTORY_SEPARATOR . md5($name) . '.lock';
     }
 
     public function setFileMode(int $fileMode): void
