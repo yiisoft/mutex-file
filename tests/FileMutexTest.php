@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Mutex\File\Tests;
 
 use PHPUnit\Framework\TestCase;
@@ -33,6 +35,6 @@ final class FileMutexTest extends TestCase
         $this->assertFileExists($mutex->getLockFilePath($mutexName));
 
         $mutex->release($mutexName);
-        $this->assertFileNotExists($mutex->getLockFilePath($mutexName));
+        $this->assertFileDoesNotExist($mutex->getLockFilePath($mutexName));
     }
 }

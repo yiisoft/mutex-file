@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yiisoft\Mutex\File;
 
 use Yiisoft\Mutex\Mutex;
@@ -25,20 +27,20 @@ class FileMutex extends Mutex
     /**
      * @var string the directory to store mutex files. You may use [path alias](guide:concept-aliases) here.
      */
-    private $mutexPath;
+    private string $mutexPath;
     /**
-     * @var int the permission to be set for newly created mutex files.
+     * @var int|null the permission to be set for newly created mutex files.
      *          This value will be used by PHP chmod() function. No umask will be applied.
      *          If not set, the permission will be determined by the current environment.
      */
-    private $fileMode;
+    private ?int $fileMode = null;
     /**
      * @var int the permission to be set for newly created directories.
      *          This value will be used by PHP chmod() function. No umask will be applied.
      *          Defaults to 0775, meaning the directory is read-writable by owner and group,
      *          but read-only for other users.
      */
-    private $dirMode = 0775;
+    private int $dirMode = 0775;
     /**
      * @var bool whether file handling should assume a Windows file system.
      *           This value will determine how [[releaseLock()]] goes about deleting the lock file.
@@ -46,24 +48,23 @@ class FileMutex extends Mutex
      *
      * @since 2.0.16
      */
-    private $isWindows;
+    private bool $isWindows;
 
     /**
      * @var resource[] stores all opened lock files. Keys are lock names and values are file handles.
      */
-    private $files = [];
+    private array $files = [];
 
     public function __construct(string $mutexPath, bool $autoRelease = true)
     {
         parent::__construct($autoRelease);
 
+        $this->isWindows = DIRECTORY_SEPARATOR === '\\';
+
         $this->mutexPath = $mutexPath;
 
         if (!is_dir($this->mutexPath)) {
             $this->createDirectoryRecursively($this->mutexPath, $this->dirMode);
-        }
-        if ($this->isWindows === null) {
-            $this->isWindows = DIRECTORY_SEPARATOR === '\\';
         }
     }
 
