@@ -31,7 +31,6 @@ final class FileMutexTest extends TestCase
         $mutexTwo->release();
     }
 
-
     public function testThatMutexLockIsWorkingOnTheSameComponent(): void
     {
         $mutex = $this->createMutex('testThatMutexLockIsWorkingOnTheSameComponent');
