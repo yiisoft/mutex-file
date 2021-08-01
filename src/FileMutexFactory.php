@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Yiisoft\Mutex\File;
 
-use Yiisoft\Mutex\MutexFactoryInterface;
+use Yiisoft\Mutex\MutexFactory;
 use Yiisoft\Mutex\MutexInterface;
 
 /**
  * Allows creating file mutex objects.
  */
-class FileMutexFactory implements MutexFactoryInterface
+final class FileMutexFactory extends MutexFactory
 {
     private string $mutexPath;
     private bool $autoRelease;
