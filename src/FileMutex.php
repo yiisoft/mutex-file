@@ -16,7 +16,7 @@ use Yiisoft\Mutex\RetryAcquireTrait;
  * > Note: this component can maintain the locks only for the single web server,
  * > it probably will not suffice in case you are using cloud server solution.
  *
- * > Warning: due to `flock()` function nature this component is unreliable when
+ * > Warning: due to {@see flock()} function nature this component is unreliable when
  * > using a multithreaded server API like ISAPI.
  */
 final class FileMutex implements MutexInterface
