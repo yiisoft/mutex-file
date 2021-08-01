@@ -4,116 +4,57 @@ declare(strict_types=1);
 
 namespace Yiisoft\Mutex\File;
 
-use Yiisoft\Mutex\Mutex;
+use Yiisoft\Files\FileHelper;
+use Yiisoft\Mutex\MutexInterface;
 use Yiisoft\Mutex\RetryAcquireTrait;
 
 /**
  * FileMutex implements mutex "lock" mechanism via local file system files.
  *
- * This component relies on PHP `flock()` function.
+ * This component relies on PHP {@see flock()} function.
  *
  * > Note: this component can maintain the locks only for the single web server,
  * > it probably will not suffice in case you are using cloud server solution.
  *
  * > Warning: due to `flock()` function nature this component is unreliable when
  * > using a multithreaded server API like ISAPI.
- *
- * @see Mutex
  */
-class FileMutex extends Mutex
+final class FileMutex implements MutexInterface
 {
     use RetryAcquireTrait;
 
-    /**
-     * @var string the directory to store mutex files. You may use [path alias](guide:concept-aliases) here.
-     */
+    private string $name;
     private string $mutexPath;
-    /**
-     * @var int|null the permission to be set for newly created mutex files.
-     *          This value will be used by PHP chmod() function. No umask will be applied.
-     *          If not set, the permission will be determined by the current environment.
-     */
     private ?int $fileMode = null;
-    /**
-     * @var int the permission to be set for newly created directories.
-     *          This value will be used by PHP chmod() function. No umask will be applied.
-     *          Defaults to 0775, meaning the directory is read-writable by owner and group,
-     *          but read-only for other users.
-     */
-    private int $dirMode = 0775;
-    /**
-     * @var bool whether file handling should assume a Windows file system.
-     *           This value will determine how [[releaseLock()]] goes about deleting the lock file.
-     *           If not set, it will be determined by checking the DIRECTORY_SEPARATOR constant.
-     *
-     * @since 2.0.16
-     */
-    private bool $isWindows;
+    private int $directoryMode = 0775;
 
     /**
-     * @var resource[] stores all opened lock files. Keys are lock names and values are file handles.
+     * @var resource Stores opened lock file resource.
      */
-    private array $files = [];
+    private $lockResource;
 
-    public function __construct(string $mutexPath, bool $autoRelease = true)
+    /**
+     * @param string $name Mutex name.
+     * @param string $mutexPath The directory to store mutex files.
+     * @param bool $autoRelease Whether to automatically release lock when PHP script ends.
+     */
+    public function __construct(string $name, string $mutexPath, bool $autoRelease = true)
     {
-        parent::__construct($autoRelease);
-
-        $this->isWindows = DIRECTORY_SEPARATOR === '\\';
-
+        $this->name = $name;
         $this->mutexPath = $mutexPath;
 
-        if (!is_dir($this->mutexPath)) {
-            $this->createDirectoryRecursively($this->mutexPath, $this->dirMode);
+        if ($autoRelease) {
+            register_shutdown_function(function () {
+                $this->release();
+            });
         }
     }
 
-    protected function createDirectoryRecursively(string $path, int $mode)
+    public function acquire(int $timeout = 0): bool
     {
-        $parentDir = dirname($path);
-        // recurse if parent dir does not exist and we are not at the root of the file system.
-        if ($parentDir !== $path && !is_dir($parentDir)) {
-            $this->createDirectoryRecursively($parentDir, $mode);
-        }
+        $filePath = $this->getLockFilePath($this->name);
 
-        try {
-            if (!mkdir($path, $mode)) {
-                return false;
-            }
-        } catch (\Exception $e) {
-            if (!is_dir($path)) {// https://github.com/yiisoft/yii2/issues/9288
-                throw new \RuntimeException(
-                    "Failed to create directory \"$path\": " . $e->getMessage(),
-                    $e->getCode(),
-                    $e
-                );
-            }
-        }
-
-        try {
-            return chmod($path, $mode);
-        } catch (\Exception $e) {
-            throw new \RuntimeException(
-                "Failed to change permissions for directory \"$path\": " . $e->getMessage(),
-                $e->getCode(),
-                $e
-            );
-        }
-    }
-
-    /**
-     * Acquires lock by given name.
-     *
-     * @param string $name    of the lock to be acquired.
-     * @param int    $timeout time (in seconds) to wait for lock to become released.
-     *
-     * @return bool acquiring result.
-     */
-    protected function acquireLock(string $name, int $timeout = 0): bool
-    {
-        $filePath = $this->getLockFilePath($name);
-
-        return $this->retryAcquire($timeout, function () use ($filePath, $name) {
+        return $this->retryAcquire($timeout, function () use ($filePath) {
             $file = fopen($filePath, 'wb+');
             if ($file === false) {
                 return false;
@@ -129,7 +70,7 @@ class FileMutex extends Mutex
                 return false;
             }
 
-            // Under unix we delete the lock file before releasing the related handle. Thus it's possible that we've
+            // Under unix, we delete the lock file before releasing the related handle. Thus, it's possible that we've
             // acquired a lock on a non-existing file here (race condition). We must compare the inode of the lock file
             // handle with the inode of the actual lock file.
             // If they do not match we simply continue the loop since we can assume the inodes will be equal on the
@@ -149,68 +90,70 @@ class FileMutex extends Mutex
                 return false;
             }
 
-            $this->files[$name] = $file;
+            $this->lockResource = $file;
 
             return true;
         });
     }
 
-    /**
-     * Releases lock by given name.
-     *
-     * @param string $name of the lock to be released.
-     *
-     * @return bool release result.
-     */
-    protected function releaseLock(string $name): bool
+    public function release(): void
     {
-        if (!isset($this->files[$name])) {
-            return false;
+        if ($this->lockResource === null) {
+            return;
         }
 
-        if ($this->isWindows) {
-            // Under windows it's not possible to delete a file opened via fopen (either by own or other process).
+        $isWindows = DIRECTORY_SEPARATOR === '\\';
+        if ($isWindows) {
+            // Under windows, it's not possible to delete a file opened via fopen (either by own or other process).
             // That's why we must first unlock and close the handle and then *try* to delete the lock file.
-            flock($this->files[$name], LOCK_UN);
-            fclose($this->files[$name]);
-            @unlink($this->getLockFilePath($name));
+            flock($this->lockResource, LOCK_UN);
+            fclose($this->lockResource);
+            @unlink($this->getLockFilePath($this->name));
         } else {
-            // Under unix it's possible to delete a file opened via fopen (either by own or other process).
+            // Under unix, it's possible to delete a file opened via fopen (either by own or other process).
             // That's why we must unlink (the currently locked) lock file first and then unlock and close the handle.
-            unlink($this->getLockFilePath($name));
-            flock($this->files[$name], LOCK_UN);
-            fclose($this->files[$name]);
+            unlink($this->getLockFilePath($this->name));
+            flock($this->lockResource, LOCK_UN);
+            fclose($this->lockResource);
         }
 
-        unset($this->files[$name]);
-
-        return true;
+        $this->lockResource = null;
     }
 
     /**
-     * Generate path for lock file.
+     * Generates path for lock file.
      *
      * @param string $name
      *
      * @return string
      */
-    public function getLockFilePath(string $name): string
+    private function getLockFilePath(string $name): string
     {
+        FileHelper::ensureDirectory($this->mutexPath, $this->directoryMode);
         return $this->mutexPath . DIRECTORY_SEPARATOR . md5($name) . '.lock';
     }
 
-    public function setFileMode(int $fileMode): void
+    /**
+     * @param int $fileMode The permission to be set for newly created mutex files.
+     * This value will be used by PHP {@see chmod()} function. No umask will be applied.
+     */
+    public function withFileMode(int $fileMode): self
     {
-        $this->fileMode = $fileMode;
+        $new = clone $this;
+        $new->fileMode = $fileMode;
+        return $new;
     }
 
-    public function setDirMode(int $dirMode): void
+    /**
+     * @param int $directoryMode The permission to be set for newly created directories.
+     * This value will be used by PHP {@see chmod()} function. No umask will be applied.
+     * Defaults to 0775, meaning the directory is read-writable by owner and group,
+     * but read-only for other users.
+     */
+    public function withDirectoryMode(int $directoryMode): self
     {
-        $this->dirMode = $dirMode;
-    }
-
-    public function setIsWindows(bool $isWindows): void
-    {
-        $this->isWindows = $isWindows;
+        $new = clone $this;
+        $new->directoryMode = $directoryMode;
+        return $new;
     }
 }
