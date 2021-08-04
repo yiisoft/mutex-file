@@ -6,19 +6,20 @@
         "yii",
         "mutex"
     ],
-    "homepage": "http://www.yiiframework.com/",
+    "homepage": "https://www.yiiframework.com/",
     "license": "BSD-3-Clause",
     "support": {
         "source": "https://github.com/yiisoft/mutex-file",
         "issues": "https://github.com/yiisoft/mutex-file/issues",
-        "forum": "http://www.yiiframework.com/forum/",
-        "wiki": "http://www.yiiframework.com/wiki/",
+        "forum": "https://www.yiiframework.com/forum/",
+        "wiki": "https://www.yiiframework.com/wiki/",
         "irc": "irc://irc.freenode.net/yii"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
         "php": "^7.4|^8.0",
+        "yiisoft/files": "^1.0",
         "yiisoft/mutex": "^3.0@dev"
     },
     "require-dev": {

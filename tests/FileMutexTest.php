@@ -17,24 +17,25 @@ final class FileMutexTest extends TestCase
      *
      * @return FileMutex
      */
-    protected function createMutex(): FileMutex
+    protected function createMutex(string $name): FileMutex
     {
-        return new FileMutex(sys_get_temp_dir());
+        return new FileMutex($name, sys_get_temp_dir());
     }
 
-    /**
-     * @dataProvider mutexDataProvider()
-     *
-     * @param string $mutexName
-     */
-    public function testDeleteLockFile($mutexName): void
+    public function testDeleteLockFile(): void
     {
-        $mutex = $this->createMutex();
+        $mutexName = 'testDeleteLockFile';
+        $mutex = $this->createMutex($mutexName);
 
-        $mutex->acquire($mutexName);
-        $this->assertFileExists($mutex->getLockFilePath($mutexName));
+        $mutex->acquire();
+        $this->assertFileExists($this->getMutexLockFilePath($mutexName));
 
-        $mutex->release($mutexName);
-        $this->assertFileDoesNotExist($mutex->getLockFilePath($mutexName));
+        $mutex->release();
+        $this->assertFileDoesNotExist($this->getMutexLockFilePath($mutexName));
+    }
+
+    private function getMutexLockFilePath(string $mutexName): string
+    {
+        return sys_get_temp_dir() . DIRECTORY_SEPARATOR . md5($mutexName) . '.lock';
     }
 }
