@@ -36,18 +36,16 @@ final class FileMutex implements MutexInterface
     /**
      * @param string $name Mutex name.
      * @param string $mutexPath The directory to store mutex files.
-     * @param bool $autoRelease Whether to automatically release lock when PHP script ends.
      */
-    public function __construct(string $name, string $mutexPath, bool $autoRelease = true)
+    public function __construct(string $name, string $mutexPath)
     {
         $this->name = $name;
         $this->mutexPath = $mutexPath;
+    }
 
-        if ($autoRelease) {
-            register_shutdown_function(function () {
-                $this->release();
-            });
-        }
+    public function __destruct()
+    {
+        $this->release();
     }
 
     public function acquire(int $timeout = 0): bool
@@ -112,7 +110,7 @@ final class FileMutex implements MutexInterface
         } else {
             // Under unix, it's possible to delete a file opened via fopen (either by own or other process).
             // That's why we must unlink (the currently locked) lock file first and then unlock and close the handle.
-            unlink($this->getLockFilePath($this->name));
+            @unlink($this->getLockFilePath($this->name));
             flock($this->lockResource, LOCK_UN);
             fclose($this->lockResource);
         }
