@@ -42,7 +42,7 @@ final class FileMutex implements MutexInterface
         $this->name = $name;
         $this->mutexPath = $mutexPath;
     }
-    
+
     public function __destruct()
     {
         $this->release();
