@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Yiisoft\Mutex\File;
 
 use Yiisoft\Files\FileHelper;
-use Yiisoft\Mutex\Mutex;
+use Yiisoft\Mutex\MutexInterface;
 use Yiisoft\Mutex\RetryAcquireTrait;
 
 /**
@@ -19,7 +19,7 @@ use Yiisoft\Mutex\RetryAcquireTrait;
  * > Warning: due to {@see flock()} function nature this component is unreliable when
  * > using a multithreaded server API like ISAPI.
  */
-final class FileMutex extends Mutex
+final class FileMutex implements MutexInterface
 {
     use RetryAcquireTrait;
 
@@ -41,6 +41,11 @@ final class FileMutex extends Mutex
     {
         $this->name = $name;
         $this->mutexPath = $mutexPath;
+    }
+    
+    public function __destruct()
+    {
+        $this->release();
     }
 
     public function acquire(int $timeout = 0): bool
@@ -91,7 +96,7 @@ final class FileMutex extends Mutex
 
     public function release(): void
     {
-        if ($this->isReleased()) {
+        if ($this->lockResource === null) {
             return;
         }
 
@@ -111,11 +116,6 @@ final class FileMutex extends Mutex
         }
 
         $this->lockResource = null;
-    }
-
-    public function isReleased(): bool
-    {
-        return $this->lockResource === null;
     }
 
     /**
