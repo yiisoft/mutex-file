@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Yiisoft\Mutex\File\Tests;
+
+use Yiisoft\Mutex\File\FileMutex;
+use Yiisoft\Mutex\File\FileMutexFactory;
+use Yiisoft\Mutex\MutexInterface;
+
+final class FileMutexFactoryTest extends TestCase
+{
+    public function testCreateAndAcquire(): void
+    {
+        $mutexName = 'testCreateAndAcquire';
+        $factory = (new FileMutexFactory($this->getMutexDirectoryPath()))->withFileMode(0777);
+        $mutex = $factory->createAndAcquire($mutexName);
+
+        $this->assertInstanceOf(MutexInterface::class, $mutex);
+        $this->assertInstanceOf(FileMutex::class, $mutex);
+
+        $this->assertFileExists($this->getMutexLockFilePath($mutexName));
+        $this->assertFalse($mutex->acquire());
+        $mutex->release();
+
+        $this->assertFileDoesNotExist($this->getMutexLockFilePath($mutexName));
+        $this->assertTrue($mutex->acquire());
+        $this->assertFileExists($this->getMutexLockFilePath($mutexName));
+
+        $mutex->release();
+        $this->assertFileDoesNotExist($this->getMutexLockFilePath($mutexName));
+    }
+
+    public function testImmutability(): void
+    {
+        $factory = new FileMutexFactory($this->getMutexDirectoryPath());
+
+        $this->assertNotSame($factory, $factory->withDirectoryMode(0775));
+        $this->assertNotSame($factory, $factory->withFileMode(0664));
+    }
+}
