@@ -8,6 +8,16 @@ use Yiisoft\Files\FileHelper;
 use Yiisoft\Mutex\MutexInterface;
 use Yiisoft\Mutex\RetryAcquireTrait;
 
+use function chmod;
+use function clearstatcache;
+use function fclose;
+use function fileinode;
+use function flock;
+use function fopen;
+use function fstat;
+use function md5;
+use function unlink;
+
 /**
  * FileMutex implements mutex "lock" mechanism via local file system files.
  *
@@ -29,9 +39,9 @@ final class FileMutex implements MutexInterface
     private int $directoryMode = 0775;
 
     /**
-     * @var resource Stores opened lock file resource.
+     * @var resource|closed-resource|null Stores opened lock file resource.
      */
-    private $lockResource;
+    private $lockResource = null;
 
     /**
      * @param string $name Mutex name.
@@ -53,8 +63,9 @@ final class FileMutex implements MutexInterface
         $filePath = $this->getLockFilePath($this->name);
 
         return $this->retryAcquire($timeout, function () use ($filePath) {
-            $file = fopen($filePath, 'wb+');
-            if ($file === false) {
+            $resource = fopen($filePath, 'wb+');
+
+            if ($resource === false) {
                 return false;
             }
 
@@ -62,9 +73,8 @@ final class FileMutex implements MutexInterface
                 @chmod($filePath, $this->fileMode);
             }
 
-            if (!flock($file, LOCK_EX | LOCK_NB)) {
-                fclose($file);
-
+            if (!flock($resource, LOCK_EX | LOCK_NB)) {
+                fclose($resource);
                 return false;
             }
 
@@ -80,15 +90,15 @@ final class FileMutex implements MutexInterface
             // Script B: locks handle of *unlinked* file
             // Script C: opens and locks *new* file
             // In this case we would have acquired two locks for the same file path.
-            if (DIRECTORY_SEPARATOR !== '\\' && fstat($file)['ino'] !== @fileinode($filePath)) {
+            if (DIRECTORY_SEPARATOR !== '\\' && fstat($resource)['ino'] !== @fileinode($filePath)) {
                 clearstatcache(true, $filePath);
-                flock($file, LOCK_UN);
-                fclose($file);
+                flock($resource, LOCK_UN);
+                fclose($resource);
 
                 return false;
             }
 
-            $this->lockResource = $file;
+            $this->lockResource = $resource;
 
             return true;
         });
@@ -96,12 +106,11 @@ final class FileMutex implements MutexInterface
 
     public function release(): void
     {
-        if ($this->lockResource === null) {
+        if (!is_resource($this->lockResource)) {
             return;
         }
 
-        $isWindows = DIRECTORY_SEPARATOR === '\\';
-        if ($isWindows) {
+        if (DIRECTORY_SEPARATOR === '\\') {
             // Under windows, it's not possible to delete a file opened via fopen (either by own or other process).
             // That's why we must first unlock and close the handle and then *try* to delete the lock file.
             flock($this->lockResource, LOCK_UN);
@@ -119,19 +128,8 @@ final class FileMutex implements MutexInterface
     }
 
     /**
-     * Generates path for lock file.
+     * Returns a new instance with the specified file mode.
      *
-     * @param string $name
-     *
-     * @return string
-     */
-    private function getLockFilePath(string $name): string
-    {
-        FileHelper::ensureDirectory($this->mutexPath, $this->directoryMode);
-        return $this->mutexPath . DIRECTORY_SEPARATOR . md5($name) . '.lock';
-    }
-
-    /**
      * @param int $fileMode The permission to be set for newly created mutex files.
      * This value will be used by PHP {@see chmod()} function. No umask will be applied.
      */
@@ -143,6 +141,8 @@ final class FileMutex implements MutexInterface
     }
 
     /**
+     * Returns a new instance with the specified directory mode.
+     *
      * @param int $directoryMode The permission to be set for newly created directories.
      * This value will be used by PHP {@see chmod()} function. No umask will be applied.
      * Defaults to 0775, meaning the directory is read-writable by owner and group,
@@ -153,5 +153,18 @@ final class FileMutex implements MutexInterface
         $new = clone $this;
         $new->directoryMode = $directoryMode;
         return $new;
+    }
+
+    /**
+     * Generates path for lock file.
+     *
+     * @param string $name The name for lock file.
+     *
+     * @return string The generated path for lock file.
+     */
+    private function getLockFilePath(string $name): string
+    {
+        FileHelper::ensureDirectory($this->mutexPath, $this->directoryMode);
+        return $this->mutexPath . DIRECTORY_SEPARATOR . md5($name) . '.lock';
     }
 }
