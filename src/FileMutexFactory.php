@@ -13,22 +13,27 @@ use Yiisoft\Mutex\MutexInterface;
 final class FileMutexFactory extends MutexFactory
 {
     private string $mutexPath;
-    private bool $autoRelease;
     private ?int $fileMode = null;
     private int $directoryMode = 0775;
 
     /**
      * @param string $mutexPath The directory to store mutex files.
-     * @param bool $autoRelease Whether to automatically release lock when PHP script ends.
      */
-    public function __construct(string $mutexPath, bool $autoRelease = true)
+    public function __construct(string $mutexPath)
     {
         $this->mutexPath = $mutexPath;
-        $this->autoRelease = $autoRelease;
+    }
+
+    public function create(string $name): MutexInterface
+    {
+        $mutex = (new FileMutex($name, $this->mutexPath))->withDirectoryMode($this->directoryMode);
+        return $this->fileMode === null ? $mutex : $mutex->withFileMode($this->fileMode);
     }
 
     /**
-     * @var int The permission to be set for newly created mutex files.
+     * Returns a new instance with the specified file mode.
+     *
+     * @param int The permission to be set for newly created mutex files.
      * This value will be used by PHP {@see chmod()} function. No umask will be applied.
      */
     public function withFileMode(int $fileMode): self
@@ -39,7 +44,9 @@ final class FileMutexFactory extends MutexFactory
     }
 
     /**
-     * @var int The permission to be set for newly created directories.
+     * Returns a new instance with the specified directory mode.
+     *
+     * @param int The permission to be set for newly created directories.
      * This value will be used by PHP {@see chmod()} function. No umask will be applied.
      * Defaults to 0775, meaning the directory is read-writable by owner and group,
      * but read-only for other users.
@@ -49,12 +56,5 @@ final class FileMutexFactory extends MutexFactory
         $new = clone $this;
         $new->directoryMode = $directoryMode;
         return $new;
-    }
-
-    public function create(string $name): MutexInterface
-    {
-        return (new FileMutex($name, $this->mutexPath, $this->autoRelease))
-            ->withFileMode($this->fileMode)
-            ->withDirectoryMode($this->directoryMode);
     }
 }
