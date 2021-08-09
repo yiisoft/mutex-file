@@ -39,7 +39,7 @@ final class FileMutex implements MutexInterface
     private int $directoryMode = 0775;
 
     /**
-     * @var resource|closed-resource|null Stores opened lock file resource.
+     * @var closed-resource|resource|null Stores opened lock file resource.
      */
     private $lockResource = null;
 
