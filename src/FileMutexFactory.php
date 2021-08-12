@@ -13,48 +13,26 @@ use Yiisoft\Mutex\MutexInterface;
 final class FileMutexFactory extends MutexFactory
 {
     private string $mutexPath;
-    private ?int $fileMode = null;
-    private int $directoryMode = 0775;
+    private int $directoryMode;
+    private ?int $fileMode;
 
     /**
      * @param string $mutexPath The directory to store mutex files.
+     * @param int $directoryMode The permission to be set for newly created directories.
+     * This value will be used by PHP {@see chmod()} function. No umask will be applied. Defaults to 0775,
+     * meaning the directory is read-writable by owner and group, but read-only for other users.
+     * @param int|null $fileMode The permission to be set for newly created mutex files.
+     * This value will be used by PHP {@see chmod()} function. No umask will be applied.
      */
-    public function __construct(string $mutexPath)
+    public function __construct(string $mutexPath, int $directoryMode = 0775, int $fileMode = null)
     {
         $this->mutexPath = $mutexPath;
+        $this->directoryMode = $directoryMode;
+        $this->fileMode = $fileMode;
     }
 
     public function create(string $name): MutexInterface
     {
-        $mutex = (new FileMutex($name, $this->mutexPath))->withDirectoryMode($this->directoryMode);
-        return $this->fileMode === null ? $mutex : $mutex->withFileMode($this->fileMode);
-    }
-
-    /**
-     * Returns a new instance with the specified file mode.
-     *
-     * @param int The permission to be set for newly created mutex files.
-     * This value will be used by PHP {@see chmod()} function. No umask will be applied.
-     */
-    public function withFileMode(int $fileMode): self
-    {
-        $new = clone $this;
-        $new->fileMode = $fileMode;
-        return $new;
-    }
-
-    /**
-     * Returns a new instance with the specified directory mode.
-     *
-     * @param int The permission to be set for newly created directories.
-     * This value will be used by PHP {@see chmod()} function. No umask will be applied.
-     * Defaults to 0775, meaning the directory is read-writable by owner and group,
-     * but read-only for other users.
-     */
-    public function withDirectoryMode(int $directoryMode): self
-    {
-        $new = clone $this;
-        $new->directoryMode = $directoryMode;
-        return $new;
+        return new FileMutex($name, $this->mutexPath, $this->directoryMode, $this->fileMode);
     }
 }

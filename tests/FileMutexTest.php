@@ -6,6 +6,8 @@ namespace Yiisoft\Mutex\File\Tests;
 
 use Yiisoft\Mutex\File\FileMutex;
 
+use function microtime;
+
 final class FileMutexTest extends TestCase
 {
     public function testMutexAcquire(): void
