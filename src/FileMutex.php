@@ -55,7 +55,7 @@ final class FileMutex extends Mutex
         parent::__construct(self::class, $name);
     }
 
-    public function acquireLock(int $timeout = 0): bool
+    protected function acquireLock(int $timeout = 0): bool
     {
         $resource = fopen($this->lockFilePath, 'wb+');
 
@@ -96,7 +96,7 @@ final class FileMutex extends Mutex
         return true;
     }
 
-    public function releaseLock(): bool
+    protected function releaseLock(): bool
     {
         if (!is_resource($this->lockResource)) {
             return false;
