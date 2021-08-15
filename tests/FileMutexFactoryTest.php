@@ -13,7 +13,7 @@ final class FileMutexFactoryTest extends TestCase
     public function testCreateAndAcquire(): void
     {
         $mutexName = 'testCreateAndAcquire';
-        $factory = (new FileMutexFactory($this->getMutexDirectoryPath()))->withFileMode(0777);
+        $factory = (new FileMutexFactory($this->getMutexDirectoryPath(), 0777, 0664));
         $mutex = $factory->createAndAcquire($mutexName);
 
         $this->assertInstanceOf(MutexInterface::class, $mutex);
@@ -29,13 +29,5 @@ final class FileMutexFactoryTest extends TestCase
 
         $mutex->release();
         $this->assertFileDoesNotExist($this->getMutexLockFilePath($mutexName));
-    }
-
-    public function testImmutability(): void
-    {
-        $factory = new FileMutexFactory($this->getMutexDirectoryPath());
-
-        $this->assertNotSame($factory, $factory->withDirectoryMode(0775));
-        $this->assertNotSame($factory, $factory->withFileMode(0664));
     }
 }
