@@ -31,6 +31,78 @@ composer require yiisoft/mutex-file --prefer-dist
 
 ## General usage
 
+The package provides two classes implementing `MutexInterface` and `MutexFactoryInterface`
+from the [yiisoft/mutex](https://github.com/yiisoft/mutex) package:
+
+```php
+$mutex = new \Yiisoft\Mutex\File\FileMutex(
+    'mutex-name',
+    '/path/to/directory/for/storing/mutex/files',
+    0775, // Optional. The permission to be set for newly created mutex directory. Default is `0775`.
+    0777, // Optional. The permission to be set for newly created mutex files. Default is `null`.
+);
+
+$mutexFactory = new \Yiisoft\Mutex\File\FileMutexFactory(
+    '/path/to/directory/for/storing/mutex/files',
+    0775, // Optional. The permission to be set for newly created mutex directory. Default is `0775`.
+    0777, // Optional. The permission to be set for newly created mutex files. Default is `null`.
+);
+```
+
+There are multiple ways you can use the package. You can execute a callback in a synchronized mode i.e. only a
+single instance of the callback is executed at the same time:
+
+```php
+$synchronizer = new \Yiisoft\Mutex\Synchronizer($mutexFactory);
+
+$newCount = $synchronizer->execute('critical', function () {
+    return $counter->increase();
+}, 10);
+```
+
+Another way is to manually open and close mutex:
+
+```php
+$simpleMutex = \Yiisoft\Mutex\SimpleMutex($mutexFactory);
+
+if (!$simpleMutex->acquire('critical', 10)) {
+    throw new \RuntimeException('Unable to acquire mutex "critical".');
+}
+
+$newCount = $counter->increase();
+$simpleMutex->release('critical');
+```
+
+It could be done on lower level:
+
+```php
+$mutex = $mutexFactory->createAndAcquire('critical', 10);
+$newCount = $counter->increase();
+$mutex->release();
+```
+
+And if you want even more control, you can acquire mutex manually:
+
+```php
+$mutex = $mutexFactory->create('critical');
+
+if (!$mutex->acquire(10)) {
+    throw new \RuntimeException('Unable to acquire mutex "critical".');
+}
+
+$newCount = $counter->increase();
+$mutex->release();
+```
+
+The `FileMutex` supports the "wait for a lock for a certain time" functionality. Using the `withRetryDelay()`
+method, you can override the number of milliseconds between each try until specified timeout times out:
+
+```php
+$mutex = $mutex->withRetryDelay(100);
+```
+
+By default, it is 50 milliseconds - it means that we may try to acquire lock up to 20 times per second.
+
 ## Testing
 
 ### Unit testing
