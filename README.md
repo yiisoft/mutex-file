@@ -66,7 +66,7 @@ Another way is to manually open and close mutex:
 $simpleMutex = \Yiisoft\Mutex\SimpleMutex($mutexFactory);
 
 if (!$simpleMutex->acquire('critical', 10)) {
-    throw new \RuntimeException('Unable to acquire mutex "critical".');
+    throw new \Yiisoft\Mutex\Exception\MutexLockedException('Unable to acquire mutex "critical".');
 }
 
 $newCount = $counter->increase();
@@ -87,7 +87,7 @@ And if you want even more control, you can acquire mutex manually:
 $mutex = $mutexFactory->create('critical');
 
 if (!$mutex->acquire(10)) {
-    throw new \RuntimeException('Unable to acquire mutex "critical".');
+    throw new \Yiisoft\Mutex\Exception\MutexLockedException('Unable to acquire mutex "critical".');
 }
 
 $newCount = $counter->increase();
