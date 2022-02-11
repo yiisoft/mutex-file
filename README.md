@@ -63,7 +63,7 @@ $newCount = $synchronizer->execute('critical', function () {
 Another way is to manually open and close mutex:
 
 ```php
-$simpleMutex = \Yiisoft\Mutex\SimpleMutex($mutexFactory);
+$simpleMutex = new \Yiisoft\Mutex\SimpleMutex($mutexFactory);
 
 if (!$simpleMutex->acquire('critical', 10)) {
     throw new \Yiisoft\Mutex\Exception\MutexLockedException('Unable to acquire the "critical" mutex.');
