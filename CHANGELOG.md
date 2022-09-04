@@ -1,7 +1,7 @@
 # Yii File Mutex Change Log
 
 
-## 1.1.1 under development
+## 1.1.1 September 04, 2022
 
 - Chg #22: Update the version of the `yiisoft/files` package to `^1.0|^2.0` in the `require` section of `composer.json` (razonyang)
 
