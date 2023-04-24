@@ -31,7 +31,6 @@ use function unlink;
 final class FileMutex extends Mutex
 {
     private string $lockFilePath;
-    private ?int $fileMode;
 
     /**
      * @var closed-resource|resource|null Stores opened lock file resource.
@@ -47,11 +46,10 @@ final class FileMutex extends Mutex
      * @param int|null $fileMode The permission to be set for newly created mutex files.
      * This value will be used by PHP {@see chmod()} function. No umask will be applied.
      */
-    public function __construct(string $name, string $mutexPath, int $directoryMode = 0775, int $fileMode = null)
+    public function __construct(string $name, string $mutexPath, int $directoryMode = 0775, private ?int $fileMode = null)
     {
         FileHelper::ensureDirectory($mutexPath, $directoryMode);
         $this->lockFilePath = $mutexPath . DIRECTORY_SEPARATOR . md5($name) . '.lock';
-        $this->fileMode = $fileMode;
         parent::__construct(self::class, $name);
     }
 
