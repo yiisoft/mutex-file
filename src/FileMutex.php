@@ -47,7 +47,7 @@ final class FileMutex extends Mutex
      * @param int|null $fileMode The permission to be set for newly created mutex files.
      * This value will be used by PHP {@see chmod()} function. No umask will be applied.
      */
-    public function __construct(string $name, string $mutexPath, int $directoryMode = 0775, int $fileMode = null)
+    public function __construct(string $name, string $mutexPath, int $directoryMode = 0775, ?int $fileMode = null)
     {
         FileHelper::ensureDirectory($mutexPath, $directoryMode);
         $this->lockFilePath = $mutexPath . DIRECTORY_SEPARATOR . md5($name) . '.lock';
@@ -72,18 +72,23 @@ final class FileMutex extends Mutex
             return false;
         }
 
-        // Under unix, we delete the lock file before releasing the related handle. Thus, it's possible that we've
-        // acquired a lock on a non-existing file here (race condition). We must compare the inode of the lock file
-        // handle with the inode of the actual lock file.
-        // If they do not match we simply continue the loop since we can assume the inodes will be equal on the
-        // next try.
-        // Example of race condition without inode-comparison:
-        // Script A: locks file
-        // Script B: opens file
-        // Script A: unlinks and unlocks file
-        // Script B: locks handle of *unlinked* file
-        // Script C: opens and locks *new* file
-        // In this case we would have acquired two locks for the same file path.
+        /**
+         * Under unix, we delete the lock file before releasing the related handle. Thus, it's possible that we've
+         * acquired a lock on a non-existing file here (race condition). We must compare the inode of the lock file
+         * handle with the inode of the actual lock file.
+         * If they do not match we simply continue the loop since we can assume the inodes will be equal on the
+         * next try.
+         * Example of race condition without inode-comparison:
+         * Script A: locks file
+         * Script B: opens file
+         * Script A: unlinks and unlocks file
+         * Script B: locks handle of *unlinked* file
+         * Script C: opens and locks *new* file
+         * In this case we would have acquired two locks for the same file path.
+         *
+         * @psalm-suppress PossiblyInvalidArrayAccess We assume that `$resource` is a correct file system pointer
+         * resource, so `fstat()` always returns array.
+         */
         if (DIRECTORY_SEPARATOR !== '\\' && fstat($resource)['ino'] !== @fileinode($this->lockFilePath)) {
             clearstatcache(true, $this->lockFilePath);
             flock($resource, LOCK_UN);

@@ -27,17 +27,17 @@
         }
     ],
     "require": {
-        "php": "^7.4|^8.0",
-        "yiisoft/files": "^1.0|^2.0",
+        "php": "7.4.* || 8.0 - 8.4",
+        "yiisoft/files": "^1.0 || ^2.0",
         "yiisoft/mutex": "^1.1"
     },
     "require-dev": {
         "maglnet/composer-require-checker": "^3.8 || ^4.2",
-        "phpunit/phpunit": "^9.5",
+        "phpunit/phpunit": "^9.6.22",
         "rector/rector": "^2.0.10",
-        "roave/infection-static-analysis-plugin": "^1.16",
-        "spatie/phpunit-watcher": "^1.23",
-        "vimeo/psalm": "^4.30|^5.6"
+        "roave/infection-static-analysis-plugin": "^1.18",
+        "spatie/phpunit-watcher": "^1.23.6",
+        "vimeo/psalm": "^4.30 || ^5.26.1 || ^6.8.8"
     },
     "autoload": {
         "psr-4": {
@@ -51,6 +51,7 @@
     },
     "config": {
         "sort-packages": true,
+        "bump-after-update": "dev",
         "allow-plugins": {
             "infection/extension-installer": true,
             "composer/package-versions-deprecated": true

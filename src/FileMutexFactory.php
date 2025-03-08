@@ -24,7 +24,7 @@ final class FileMutexFactory extends MutexFactory
      * @param int|null $fileMode The permission to be set for newly created mutex files.
      * This value will be used by PHP {@see chmod()} function. No umask will be applied.
      */
-    public function __construct(string $mutexPath, int $directoryMode = 0775, int $fileMode = null)
+    public function __construct(string $mutexPath, int $directoryMode = 0775, ?int $fileMode = null)
     {
         $this->mutexPath = $mutexPath;
         $this->directoryMode = $directoryMode;
