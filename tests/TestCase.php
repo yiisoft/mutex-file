@@ -7,6 +7,8 @@ namespace Yiisoft\Mutex\File\Tests;
 use function md5;
 use function sys_get_temp_dir;
 
+use const DIRECTORY_SEPARATOR;
+
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
     protected function getMutexDirectoryPath(): string
