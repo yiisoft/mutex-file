@@ -16,6 +16,12 @@ use function fopen;
 use function fstat;
 use function md5;
 use function unlink;
+use function is_resource;
+
+use const DIRECTORY_SEPARATOR;
+use const LOCK_EX;
+use const LOCK_NB;
+use const LOCK_UN;
 
 /**
  * FileMutex implements mutex "lock" mechanism via local file system files.
