@@ -2,7 +2,7 @@
 
 ## 1.1.2 under development
 
-- Chg #44: Change PHP constraint in `composer.json` to `7.4.* || 8.0 - 8.4` (@vjik)
+- Chg #44, #61: Change PHP constraint in `composer.json` to `7.4.* || 8.0 - 8.5` (@vjik)
 - Bug #44: Explicitly mark nullable parameters (@vjik)
 - Enh #46: Explicitly import functions and constants in "use" section (@mspirkov)
 
