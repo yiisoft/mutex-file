@@ -1,5 +1,9 @@
 # Yii File Mutex Change Log
 
+## 1.1.3 under development
+
+- no changes in this release.
+
 ## 1.1.2 October 09, 2026
 
 - Chg #44, #61: Change PHP constraint in `composer.json` to `7.4.* || 8.0 - 8.5` (@vjik)
