@@ -1,10 +1,10 @@
 # Yii File Mutex Change Log
 
-## 1.1.2 under development
+## 1.1.2 October 09, 2026
 
 - Chg #44, #61: Change PHP constraint in `composer.json` to `7.4.* || 8.0 - 8.5` (@vjik)
-- Bug #44: Explicitly mark nullable parameters (@vjik)
 - Enh #46: Explicitly import functions and constants in "use" section (@mspirkov)
+- Bug #44: Explicitly mark nullable parameters (@vjik)
 
 ## 1.1.1 September 04, 2022
 
