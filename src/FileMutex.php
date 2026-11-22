@@ -92,10 +92,9 @@ final class FileMutex extends Mutex
          * Script C: opens and locks *new* file
          * In this case we would have acquired two locks for the same file path.
          *
-         * @psalm-suppress PossiblyInvalidArrayAccess We assume that `$resource` is a correct file system pointer
-         * resource, so `fstat()` always returns array.
+         * We assume that `$resource` is a correct file system pointer resource, so `fstat()` always returns array.
          */
-        if (DIRECTORY_SEPARATOR !== '\\' && fstat($resource)['ino'] !== @fileinode($this->lockFilePath)) {
+        if (DIRECTORY_SEPARATOR !== '\\' && fstat($resource)['ino'] !== @fileinode($this->lockFilePath)) { // @phpstan-ignore offsetAccess.nonOffsetAccessible
             clearstatcache(true, $this->lockFilePath);
             flock($resource, LOCK_UN);
             fclose($resource);
