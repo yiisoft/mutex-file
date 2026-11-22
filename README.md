@@ -17,7 +17,7 @@ This library provides a File mutex implementation for [yiisoft/mutex](https://gi
 
 ## Requirements
 
-- PHP 7.4 - 8.5.
+- PHP 7.4 - 8.6.
 
 ## Installation
 
